@@ -5,9 +5,9 @@ def algorithm(k, input_file, output_file, max_iter=200):
     epsilon = 0.001
     data_points = reading_from_file(input_file)
     centroids = init_centroids(data_points, k)
-    clusters = [[] for i in range(k)]
     N = len(data_points)
     while max_iter > 0:
+        clusters = [[] for i in range(k)]
         for i in range(N):
             x_i = data_points[i]
             index = find_closest_cluster(x_i, centroids)
@@ -29,7 +29,7 @@ def writing_to_output_file(output_file, centroids):
 
 
 def find_closest_cluster(data_point, mu_array):
-    difference_array = np.array([np.sqrt(np.sum(np.square(data_point - mu_array[i]))) for i in range(len(mu_array))])
+    difference_array = np.array([np.sum(np.square(data_point - mu_array[i])) for i in range(len(mu_array))])
     return np.argmin(difference_array)
 
 

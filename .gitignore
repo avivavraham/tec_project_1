@@ -5,6 +5,7 @@ __pycache__/
 
 # local files
 output_check
+./c/hw1.dSYM
 
 # C extensions
 *.so

@@ -10,8 +10,14 @@
 #define SEEK_END 2
 
 #define SQ(x) x * x
+#define array_len(a) (sizeof(a) / sizeof(*a))
 
 
+
+void init_data_frame(const char *file);
+void find_vectors_len(FILE *fp);
+void find_d_of_vector(FILE *fp);
+char* concat(const char *s1, const char *s2);
 int read_file(char* input, int k);
 void write_to_output_file();
 int find_closets_cluster();
@@ -19,14 +25,91 @@ void init_centroids();
 int algorithm();
 void validate(int condition);
 int is_number(char* num);
-int isdigit(char digit);
+int isdigit_help(char digit);
 void find_rows_and_columns();
 void init_data_points();
 
-int k, max_iter,num_rows,d,num_in_row,vector_len;
+int k, max_iter,num_rows,d=1,vector_len;
 char *input_file, *output_file;
 double **data_points,**centroids,***clusters;
 
+/*
+ * write func that creates data frame of vectors(array[]][])
+ */
+void init_data_frame(const char *file){
+    FILE *ifp = NULL;
+    ifp = fopen("input1.txt" ,"r");
+    int i=0,j=0,r=0;
+
+    if (ifp != NULL){
+        find_vectors_len(ifp);
+        find_d_of_vector(ifp);
+        
+        double vectors[num_rows][d];
+        char line[1024];
+        char* temp_vector= "";
+        while(fgets(line, sizeof line, ifp) != NULL) {
+            while (line[r] != '\n'){
+                if (line[r] != ','){
+                    char *temp_char_to_string = malloc(2 * sizeof(char));
+                    temp_char_to_string[0] = line[r];
+                    temp_char_to_string[1] = '\0';
+                    temp_vector = concat(temp_vector, temp_char_to_string);
+                } else{
+                    double ftemp = atof(temp_vector);
+                    vectors[i][j] = ftemp;
+                    j++;
+                    temp_vector ="";
+                }
+                r++;
+            }
+            double ftemp = atof(temp_vector);
+            vectors[i][j] = ftemp;
+            j++;
+            temp_vector ="";
+            r = 0;
+            i++;
+            j=0;
+        }
+        printf("%d", i);
+        fclose(ifp);
+
+        data_points = calloc(num_rows, sizeof(double *));
+        for(i=0 ; i<num_rows ; i++ ){
+            data_points[i] = calloc(d, sizeof(int));
+        }
+        data_points = calloc(num_rows,sizeof(double));
+        for(i=0 ; i<num_rows ; i++ ){
+            for(j=0 ; j<d ; j++ ){
+                data_points[i][j] = vectors[i][j];
+            }
+        }
+    }
+}
+
+void find_vectors_len(FILE *fp){
+    char line[1024];
+    while(fgets(line, sizeof line, fp) != NULL) {
+        num_rows++;
+    }
+    fseek(fp,0,SEEK_SET);
+}
+
+
+void find_d_of_vector(FILE *fp){
+    char line[1024];
+    int i=0;
+    if (fgets(line, sizeof line, fp) != NULL) {
+        line[i] = line[0];
+        while (line[i] != '\n'){
+            if (line[i] == ','){
+                d++;
+            }
+            i++;
+        }
+    }
+    fseek(fp,0,SEEK_SET);
+}
 
 char* concat(const char *s1, const char *s2)
 {
@@ -37,7 +120,7 @@ char* concat(const char *s1, const char *s2)
     return result;
 }
 
-int find_closets_cluster(int *data_point){
+int find_closets_cluster(double *data_point){
     double *difference;
     difference = calloc(k, sizeof(int *));
     for(int i=0 ; i<k ; i++){
@@ -73,9 +156,10 @@ int find_closets_cluster(int *data_point){
 
 
 
-int main(int argc, char *argv[])  {
+int main(int argc, char *argv[]) {
+    init_data_frame(argv[3]);
 
-    printf("%d", is_number("123"));
+//    printf("%d", is_number("123"));
     printf("start\n");
 
     validate(argc == 4 || argc == 5);
@@ -112,7 +196,7 @@ int algorithm(){
             double *current_centroid = calloc(len_cluster,sizeof(double));
             for (int j=0;j<len_cluster;j++){
                 double *data = cluster[j];
-                 int len = sizeof(data)/sizeof(data[0]);
+                int len = sizeof(data)/sizeof(data[0]);
                 for(int m=0;m<len;m++){
                     current_centroid[m] += data[m];
                 }
@@ -202,45 +286,45 @@ int is_number(char s[])
 {
     for (int i = 0; s[i]!= '\0'; i++)
     {
-        if (isdigit(s[i]) == 0)
+        if (isdigit_help(s[i]) == 0)
             return 0;
     }
     return 1;
 }
 
-int isdigit(char digit){
+int isdigit_help(char digit){
     if (digit < '0' || digit > '9')
         return 0;
     return 1;
 }
 
-int read_file(char* input, int k){
-    FILE *ifp = NULL;
-    ifp = fopen(concat("../",input),"r");
-    assert(ifp!=NULL);
+// int read_file(char* input, int k){
+//     FILE *ifp = NULL;
+//     ifp = fopen(concat("../",input),"r");
+//     assert(ifp!=NULL);
 
-    fseek(ifp, 0, SEEK_END); // seek to end of file
-    long size = ftell(ifp); // get current file pointer
-    fseek(ifp, 0, SEEK_SET);
+//     fseek(ifp, 0, SEEK_END); // seek to end of file
+//     long size = ftell(ifp); // get current file pointer
+//     fseek(ifp, 0, SEEK_SET);
 
-    find_rows_and_columns();
-
-
+//     find_rows_and_columns();
 
 
 
-    char buff[254];
-//    fgets(buff, 255, (FILE*)ifp);
-    while(1) {
-        int c = fgetc(ifp);
-        if(feof(ifp)) {
-            break ;
-        }
-        printf("%c", c);
-    }
-//    printf("print : %s\n", buff);
-    fclose( ifp );
-}
+
+
+//     char buff[254];
+// //    fgets(buff, 255, (FILE*)ifp);
+//     while(1) {
+//         int c = fgetc(ifp);
+//         if(feof(ifp)) {
+//             break ;
+//         }
+//         printf("%c", c);
+//     }
+// //    printf("print : %s\n", buff);
+//     fclose( ifp );
+// }
 
 void validate(int condition){
     if(!condition){
@@ -252,6 +336,3 @@ void validate(int condition){
 void find_rows_and_columns(){
 
 }
-
-
-

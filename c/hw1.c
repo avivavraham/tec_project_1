@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #define SEEK_SET 0
 #define SEEK_CUR 1
 #define SEEK_END 2
@@ -12,31 +11,49 @@
 #define SQ(x) x * x
 #define array_len(a) (sizeof(a) / sizeof(*a))
 
-
-
 void init_data_frame(const char *file);
-void find_vectors_len(FILE *fp);
-void find_d_of_vector(FILE *fp);
-char* concat(const char *s1, const char *s2);
-int read_file(char* input, int k);
-void write_to_output_file();
-int find_closets_cluster();
-void init_centroids();
-int algorithm();
 void validate(int condition);
 int is_number(char* num);
 int isdigit_help(char digit);
-void find_rows_and_columns();
-void init_data_points();
+void find_vectors_len(FILE *fp);
+void find_d_of_vector(FILE *fp);
+char* concat(const char *s1, const char *s2);
+void write_to_output_file();
+int find_closets_cluster();
+int algorithm();
+void init_centroids();
+void init_clusters();
 
-int k, max_iter,num_rows,d=1,vector_len;
+int k, max_iter,num_rows,d=1;
 char *input_file, *output_file;
-double **data_points,**centroids,***clusters;
+double **data_points,**centroids,**new_centroids,***clusters;
+
+int main(int argc, char *argv[]) {
+    init_data_frame(argv[3]);
+
+//    printf("%d", is_number("123"));
+    printf("start\n");
+
+    validate(argc == 4 || argc == 5);
+
+    sscanf(argv[1],"%d",&k);
+
+    if (is_number(argv[2])){
+        sscanf(argv[2],"%d",&max_iter);
+    } else{
+        max_iter = 200;
+    }
+    sscanf(argv[argc-2],"%s",&input_file);
+    sscanf(argv[argc-1],"%s",&output_file);
+
+    return algorithm();
+}
 
 /*
  * write func that creates data frame of vectors(array[]][])
  */
 void init_data_frame(const char *file){
+    validate(5);
     FILE *ifp = NULL;
     ifp = fopen("input1.txt" ,"r");
     int i=0,j=0,r=0;
@@ -75,11 +92,10 @@ void init_data_frame(const char *file){
         fclose(ifp);
 
         data_points = calloc(num_rows, sizeof(double *));
-        for(i=0 ; i<num_rows ; i++ ){
-            data_points[i] = calloc(d, sizeof(int));
+        for(int i=0 ; i<num_rows ; i++ ){
+            data_points[i] = calloc(d, sizeof(double));
         }
-        data_points = calloc(num_rows,sizeof(double));
-        for(i=0 ; i<num_rows ; i++ ){
+        for(int i=0 ; i<num_rows ; i++ ){
             for(j=0 ; j<d ; j++ ){
                 data_points[i][j] = vectors[i][j];
             }
@@ -156,40 +172,29 @@ int find_closets_cluster(double *data_point){
 
 
 
-int main(int argc, char *argv[]) {
-    init_data_frame(argv[3]);
 
-//    printf("%d", is_number("123"));
-    printf("start\n");
-
-    validate(argc == 4 || argc == 5);
-
-    sscanf(argv[1],"%d",&k);
-
-    if (is_number(argv[2])){
-        sscanf(argv[2],"%d",&max_iter);
-    } else{
-        max_iter = 200;
-    }
-    sscanf(argv[argc-2],"%s",input_file);
-    sscanf(argv[argc-1],"%s",output_file);
-
-    return algorithm();
-}
 
 int algorithm(){
     double epsilon = 0.001;
-    read_file(input_file,k);
-
     int N = num_rows;
+    init_centroids();
     while(max_iter > 0){
-        clusters = calloc(k,sizeof(double **));
+        init_clusters();
+        int *num_elemnts_in_cluster = calloc(k,sizeof(int));
+        for(int i=0;i<k;i++){
+            num_elemnts_in_cluster[i] = 0;
+        }
         for (int i=0;i<N;i++){
             double *x_i = data_points[i];
             int index = find_closets_cluster(x_i);
-            // clusters[index].append(x_i);
+            clusters[index][num_elemnts_in_cluster[index]] = x_i;
+            index++;
         }
-        double **new_centorits = calloc(k,sizeof(double *));
+        for(int i=0;i<k;i++){
+            for(int j=0;j<d;j++){
+                new_centroids[i][j] = 0;
+            }
+        }
         for(int i=0;i<k;i++){
             double **cluster = clusters[i];
             int len_cluster = sizeof(cluster)/sizeof(cluster[0]);
@@ -205,8 +210,7 @@ int algorithm(){
             int len = sizeof(current_centroid)/sizeof(current_centroid[0]);
             for(int j=0;j<len;j++){
                 for(int m=0;m<len;m++){
-                    new_centorits[j][m] = current_centroid[m] / len_cluster;
-
+                    new_centroids[j][m] = current_centroid[m] / len_cluster;
                 }
             }
         }
@@ -215,12 +219,13 @@ int algorithm(){
         double ** diff_centroids = calloc(k,sizeof(double *));
         for(int i=0;i<k;i++){
             double *lst1 = centroids[i];
-            double *lst2 = new_centorits[i];
+            double *lst2 = new_centroids[i];
             int len = sizeof(lst1)/sizeof(lst1[0]);
             double *diff_lst = calloc(len,sizeof(double));
             for(int j=0;j<len;j++){
                 diff_lst[j] = lst1[j] - lst2[j];
             }
+            diff_centroids[i] = diff_lst;
         }
         //diff_centroids = [sum([num**2 for num in diff_centroids[i]])**0.5 for i in range(len(diff_centroids))]
         int len = sizeof(diff_centroids)/sizeof(diff_centroids[0]);
@@ -241,12 +246,14 @@ int algorithm(){
             }
         }
         if(max<epsilon){
+            centroids = new_centroids;
+            write_to_output_file();
             return 1;
         }
-        centroids = new_centorits;
-        write_to_output_file();
+        centroids = new_centroids;
 
     }
+    write_to_output_file();
 
     return 1;
 
@@ -280,6 +287,27 @@ int algorithm(){
     writing_to_output_file(output_file, new_centroids)
 
     */
+}
+void init_centroids(){
+
+    centroids = calloc(k,sizeof(double *));
+    new_centroids = calloc(k,sizeof(double *));
+
+    for(int i=0;i<k;i++){
+        centroids[i] = data_points[i];
+        new_centroids[i] = calloc(d, sizeof(double));
+    }
+
+}
+void init_clusters(){
+    clusters = calloc(k,sizeof(double **));
+    for(int i=0;i<k;i++){
+        clusters[i] = calloc(num_rows,sizeof(double **));
+        for(int j=0;j<num_rows;j++){
+            clusters[i][j] = calloc(d,sizeof(double));
+        }
+    }
+
 }
 
 int is_number(char s[])
@@ -333,6 +361,5 @@ void validate(int condition){
     }
 }
 
-void find_rows_and_columns(){
+void write_to_output_file(){}
 
-}

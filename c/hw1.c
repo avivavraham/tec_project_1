@@ -35,7 +35,7 @@ int main(int argc, char *argv[])  {
         max_iter = 200;
         void* input_file = argv[3];
         void* output_file = argv[4];
-
+        
     }
     else {
         return 0;

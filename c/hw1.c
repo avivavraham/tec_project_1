@@ -8,7 +8,10 @@
 #define SEEK_SET 0
 #define SEEK_CUR 1
 #define SEEK_END 2
-
+double ** data_frame(const char *file);
+void find_vectors_len(FILE *fp);
+void find_d_of_vector(FILE *fp);
+char* concat(const char *s1, const char *s2);
 int read_file(char* input, int k);
 void write_to_output_file(char *input);
 int find_closets_cluster();
@@ -20,10 +23,75 @@ int isdigit(char digit);
 void find_rows_and_columns();
 void init_data_points();
 
-int k, max_iter,num_rows,num_columns,num_in_row,vector_len;
+int k, max_iter,num_rows,d=1,num_in_row,vector_len;
 char *input_file, *output_file;
 double **data_points,centroids;
 
+/*
+ * write func that creates data frame of vectors(array[]][])
+ */
+double ** data_frame(const char *file){
+    FILE *ifp = NULL;
+    ifp = fopen("C:\\Users\\aviva\\CLionProjects\\tec_project_1\\c\\input1.txt" ,"r");
+    int i=0,j=0,r=0;
+
+    if (ifp != NULL){
+        find_vectors_len(ifp);
+        find_d_of_vector(ifp);
+        double vectors[num_rows][d];
+        char line[1024];
+        char* temp_vector= "";
+        while(fgets(line, sizeof line, ifp) != NULL) {
+            while (line[r] != '\n'){
+                if (line[r] != ','){
+                    char *temp_char_to_string = malloc(2 * sizeof(char));
+                    temp_char_to_string[0] = line[r];
+                    temp_char_to_string[1] = '\0';
+                    temp_vector = concat(temp_vector, temp_char_to_string);
+                } else{
+                    double ftemp = atof(temp_vector);
+                    vectors[i][j] = ftemp;
+                    j++;
+                    temp_vector ="";
+                }
+                r++;
+            }
+            double ftemp = atof(temp_vector);
+            vectors[i][j] = ftemp;
+            j++;
+            temp_vector ="";
+            r = 0;
+            i++;
+            j=0;
+        }
+        printf("%d", i);
+        fclose(ifp);
+    }
+}
+
+void find_vectors_len(FILE *fp){
+    char line[1024];
+    while(fgets(line, sizeof line, fp) != NULL) {
+        num_rows++;
+    }
+    fseek(fp,0,SEEK_SET);
+}
+
+
+void find_d_of_vector(FILE *fp){
+    char line[1024];
+    int i=0;
+    if (fgets(line, sizeof line, fp) != NULL) {
+        line[i] = line[0];
+        while (line[i] != '\n'){
+            if (line[i] == ','){
+                d++;
+            }
+            i++;
+        }
+    }
+    fseek(fp,0,SEEK_SET);
+}
 
 char* concat(const char *s1, const char *s2)
 {
@@ -35,9 +103,10 @@ char* concat(const char *s1, const char *s2)
 }
 
 
-int main(int argc, char *argv[])  {
+int main(int argc, char *argv[]) {
+    data_frame(argv[3]);
 
-    printf("%d", is_number("123"));
+//    printf("%d", is_number("123"));
     printf("start\n");
 
     validate(argc == 4 || argc == 5);
@@ -124,6 +193,3 @@ void validate(int condition){
 void find_rows_and_columns(){
 
 }
-
-
-

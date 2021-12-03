@@ -10,6 +10,13 @@
 
 #define SQ(x) x * x
 
+//TODO: all int outside the for
+//initialize only at the start of every function
+//add handle errors
+//check division by zero
+//check that all memory is free at the end
+
+
 void init_data_frame(const char *file);
 void validate(int condition);
 int is_number(char* num);

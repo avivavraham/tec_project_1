@@ -24,7 +24,7 @@ int isdigit_help(char digit);
 void find_vectors_len(FILE *fp);
 void find_d_of_vector(FILE *fp);
 char* concat(const char *s1, const char *s2);
-void write_to_output_file();
+void write_to_output_file(double **array_of_centroids);
 int find_closets_cluster();
 int algorithm();
 void init_centroids();
@@ -305,7 +305,7 @@ int algorithm(){
         // free(sum_diff_centroids);
         if(max<epsilon){
             set_equal_2d_array(centroids,new_centroids,k,d);
-            write_to_output_file();
+            write_to_output_file(centroids);
             free_2d_array(centroids,k);
             free_2d_array(new_centroids,k);
             free_2d_array(data_points,num_rows);
@@ -314,7 +314,7 @@ int algorithm(){
         }
         set_equal_2d_array(centroids,new_centroids,k,d);
     }
-    write_to_output_file();
+    write_to_output_file(centroids);
     
     return 1;
 
@@ -404,7 +404,26 @@ void validate(int condition){
     }
 }
 
-void write_to_output_file(){}
+void write_to_output_file(double **array_of_centroids){
+    FILE *fptr;
+    fptr = fopen(output_file,"w");
+
+    if(fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+
+    for (int i = 0; i < k; ++i) {
+        for (int j = 0; j < d-1; ++j) {
+            fprintf(fptr, ".4%f",centroids[i][j]);
+            fprintf(fptr, ",");
+        }
+        fprintf(fptr, ".4%f",centroids[i][d-1]);
+        fprintf(fptr, "\n");
+    }
+    fclose(fptr);
+}
 
 void free_2d_array(double **array, int rows) {
     for (int row = 0; row < rows; row++){

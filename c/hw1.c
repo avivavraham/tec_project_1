@@ -61,7 +61,7 @@ void init_data_frame(){
     char line[1024];
     char *temp_vector= "";
     char *temp_char_to_string;
-    double f_temp;
+    double f_temp, **vectors;
 
     ifp = fopen(input_file ,"r");
     error(ifp == NULL);
@@ -69,7 +69,7 @@ void init_data_frame(){
     find_vectors_len(ifp);
     find_d_of_vector(ifp);
 
-    double vectors[num_rows][d];
+    vectors = allocate_2d_array(num_rows,d);
 
     while(fgets(line, sizeof line, ifp) != NULL) {
         while (line[r] != '\n'){
@@ -211,39 +211,6 @@ void calculate_new_centroids(const int *num_elements_in_cluster){
     }
 }
 
-//void subtract_centroids(double ** diff_centroids){
-//    double *lst1,*lst2,*diff_lst;
-//    int i,j;
-//
-//    for( i=0;i<k;i++){
-//        lst1 = centroids[i];
-//        lst2 = new_centroids[i];
-//        diff_lst = calloc(d,sizeof(double));
-//        error(diff_lst == NULL);
-//
-//        for( j=0;j<d;j++){
-//            diff_lst[j] = lst1[j] - lst2[j];
-//        }
-//        for( j=0;j<k;j++){
-//            diff_centroids[i][j] = diff_lst[j];
-//        }
-//    }
-//}
-
-//void normal_centroids(double **diff_centroids, double *sum_diff_centroids){
-//    double *data_point,sum,normal;
-//    int i,j;
-//    for( i=0;i<k;i++){
-//        data_point = diff_centroids[i];
-//        sum=0;
-//        for( j=0;j<k;j++){
-//            sum += SQ(data_point[j]);
-//        }
-//        normal = sqrt(sum);
-//        sum_diff_centroids[i] = normal;
-//    }
-//}
-
 double get_squared_distance(double *v1, double *v2) {
     double dist = 0;
     int i;
@@ -289,15 +256,15 @@ void algorithm(){
         }
         if(max<=epsilon){
             set_equal_2d_array(centroids,new_centroids,k,d);
-            write_to_output_file();
-            free_2d_array(centroids,k);
-            free_2d_array(new_centroids,k);
-            free_2d_array(data_points,num_rows);
-            free_3d_array(clusters,k,num_rows);
+            max_iter=0;
         }
         set_equal_2d_array(centroids,new_centroids,k,d);
     }
     write_to_output_file();
+    free_2d_array(centroids,k);
+    free_2d_array(new_centroids,k);
+    free_2d_array(data_points,num_rows);
+    free_3d_array(clusters,k,num_rows);
 }
 
 double** allocate_2d_array(int rows,int columns){
@@ -438,4 +405,3 @@ void zero_3d_array(double ***array,int x,int y,int z){
         }
     }
 }
-        

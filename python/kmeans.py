@@ -1,5 +1,5 @@
-import numpy as np
-
+from os import close
+import sys
 
 def algorithm(k, input_file, output_file, max_iter=200):
     epsilon = 0.001
@@ -32,10 +32,9 @@ def algorithm(k, input_file, output_file, max_iter=200):
 
 
 def writing_to_output_file(output_file, centroids):
-    f = open(output_file, "a")
-    f.write(centroids)
+    f = open(output_file, "w")
+    f.writelines(','.join(f'{num:.4f}' for num in centroid) + '\n' for centroid in centroids)
     f.close()
-    #’%.4f’
 
 def find_closest_cluster(data_point, mu_array):
     difference_array = [sum([(a - b)**2 for a, b in zip(data_point, mu_array[i])]) for i in range(len(mu_array))]
@@ -48,20 +47,50 @@ def find_closest_cluster(data_point, mu_array):
     return index
 
 def reading_from_file(file):
-    lines = tuple(open(file, 'r'))
-    vectors = [line.split(",") for line in lines]
-    for i in range(len(vectors)):
-        for j in range(len(vectors[i])):
-            vectors[i][j] = float(vectors[i][j])
-
-    return vectors
+    try:
+        lines = tuple(open(file, 'r'))
+        vectors = [line.split(",") for line in lines]
+        for i in range(len(vectors)):
+            for j in range(len(vectors[i])):
+                vectors[i][j] = float(vectors[i][j])
+        return vectors
+    except Exception:
+        print('An Error Has Occurred')
+        exit(1)
 
 
 def init_centroids(vectors_array, k):
     mu_array = [vectors_array[i] for i in range(k)]
     return mu_array
 
+def validate_input(condition):
+    if not condition:
+        print('Invalid Input!')
+        exit(1)
+
 
 if __name__ == '__main__':
-    algorithm(7, 'input_2.txt', 'output_check')
+    try:
+        args = sys.argv[1:]
+
+        validate_input(len(args) == 3 or len(args) == 4)
+
+        validate_input(args[0].isdigit())
+        K = int(args[0])
+        validate_input(K > 0)
+
+        if len(args) == 4:
+            validate_input(args[1].isdigit())
+            max_iter = int(args[1])
+        else:
+            max_iter = 200
+
+        input_file = args[-2]
+        output_file = args[-1]
+
+        algorithm(K, input_file, output_file)
+    except Exception:
+        print('An Error Has Occurred')
+        exit(1)
+
 

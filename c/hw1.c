@@ -5,13 +5,6 @@
 
 #define SEEK_SET 0
 
-//TODO: all int outside the for - done
-//initialize only at the start of every function - done
-//add handle errors - done
-//check division by zero
-//check that all memory is free at the end
-
-
 void init_data_frame();
 void validate_input(int condition);
 int is_number(char s[]);
@@ -33,8 +26,6 @@ void calculate_new_centroids(const int *num_elements_in_cluster);
 double** allocate_2d_array(int rows,int columns);
 double get_squared_distance(double *v1, double *v2);
 void error(int condition);
-//void normal_centroids(double **diff_centroids, double *sum_diff_centroids);
-//void subtract_centroids(double ** diff_centroids);
 
 int k, max_iter,num_rows,d=1;
 char *input_file, *output_file;

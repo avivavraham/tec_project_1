@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "cwchar": "c",
+        "string": "c",
+        "string_view": "c",
+        "utility": "c",
+        "algorithm": "c",
+        "chrono": "c"
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
+}

@@ -11,7 +11,6 @@ int is_number(char s[]);
 int isdigit_help(char digit);
 void find_vectors_len(FILE *fp);
 void find_d_of_vector(FILE *fp);
-char* concat(const char *s1, const char *s2);
 void write_to_output_file();
 int find_closets_cluster(double *data_point);
 void algorithm();
@@ -37,7 +36,7 @@ int main(int argc, char **argv) {
 
 
     validate_input(sscanf(argv[1],"%d",&k) != EOF);
-    validate_input(k>0);
+    validate_input(k>1);
 
     if (is_number(argv[2])){
         sscanf(argv[2],"%d",&max_iter);
@@ -51,6 +50,7 @@ int main(int argc, char **argv) {
     validate_input(!is_number(output_file));
 
     init_data_frame();
+    validate_input(k<num_rows);
 
     algorithm();
     return 0;
@@ -58,11 +58,8 @@ int main(int argc, char **argv) {
 
 void init_data_frame(){
     FILE *ifp = NULL;
-    int i=0,j=0,r=0;
+    int i=0,j;
     char line[1024];
-    char *temp_vector= "";
-    char *temp_char_to_string;
-    double f_temp, **vectors;
 
     ifp = fopen(input_file ,"r");
     error(ifp == NULL);
@@ -70,45 +67,23 @@ void init_data_frame(){
     find_vectors_len(ifp);
     find_d_of_vector(ifp);
 
-    vectors = allocate_2d_array(num_rows,d);
+    data_points = allocate_2d_array(num_rows,d);
+    error(data_points == NULL);
 
     while(fgets(line, sizeof line, ifp) != NULL) {
-        while (line[r] != '\n'){
-            temp_char_to_string = calloc(2, sizeof(char));
-            if (line[r] != ','){
-                error(temp_char_to_string == NULL);
-                temp_char_to_string[0] = line[r];
-                temp_char_to_string[1] = '\0';
-                temp_vector = concat(temp_vector, temp_char_to_string);
-                free(temp_char_to_string);
-            } else{
-                f_temp = atof(temp_vector);
-                vectors[i][j] = f_temp;
-                j++;
-                temp_vector ="";
+        line[strlen(line) - 1] = 0;
+        for (j = 0; j < d; j++) {
+            if (j == 0) {
+                data_points[i][j] = atof(strtok(line, ","));
+            } else {
+                data_points[i][j] = atof(strtok(NULL, ","));
             }
-            r++;
         }
-        f_temp = atof(temp_vector);
-        vectors[i][j] = f_temp;
-        temp_vector ="";
-        r = 0;
+
         i++;
-        j=0;
     }
     fclose(ifp);
 
-    data_points = calloc(num_rows, sizeof(double *));
-    error(data_points == NULL);
-    for(i=0 ; i<num_rows ; i++ ){
-        data_points[i] = calloc(d, sizeof(double));
-        error(data_points[i] == NULL);
-    }
-    for(i=0 ; i<num_rows ; i++ ){
-        for(j=0 ; j<d ; j++ ){
-            data_points[i][j] = vectors[i][j];
-        }
-    }
 }
 
 void error(int condition){
@@ -142,15 +117,6 @@ void find_d_of_vector(FILE *fp){
     fseek(fp,0,SEEK_SET);
 }
 
-char* concat(const char *s1, const char *s2)
-{
-    char *result = malloc(strlen(s1) + strlen(s2) + 1);
-    error(result == NULL);
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
-}
-
 int find_closets_cluster(double *data_point){
     double *difference, *current_mu, sum,min_sum;
     int index=0,i;
@@ -176,17 +142,14 @@ int find_closets_cluster(double *data_point){
 
 void set_clusters(){
     int index,i,a;
-    double *x_i,*cluster;
 
     for(i=0;i<k;i++){
         num_elements_in_cluster[i] = 0;
     }
     for (i=0;i<num_rows;i++){
-        x_i = data_points[i];
-        index = find_closets_cluster(x_i);
-        cluster = clusters[index];
+        index = find_closets_cluster(data_points[i]);
         for (a=0;a<d;a++){
-            cluster[a] += x_i[a];
+            clusters[index][a] += data_points[i][a];
         }
         num_elements_in_cluster[index]++;
     }
@@ -221,6 +184,7 @@ void algorithm(){
     double diff,sq_diff,max;
     num_elements_in_cluster = calloc(k, sizeof(int));
 
+    centroids = allocate_2d_array(k,d);
     init_centroids();
     clusters = allocate_2d_array(k,d);
     new_centroids = allocate_2d_array(k,d);
@@ -263,12 +227,12 @@ void algorithm(){
 }
 
 double** allocate_2d_array(int rows,int columns){
-    double ** array;
+    double** array;
     int i;
 
     array = calloc(rows,sizeof(double *));
     error(array == NULL);
-
+    
     for ( i=0;i<rows;i++){
         array[i] = calloc(columns,sizeof(double));
         error(array[i] == NULL);
@@ -278,13 +242,7 @@ double** allocate_2d_array(int rows,int columns){
 
 void init_centroids(){
     int i,j;
-
-    centroids = calloc(k,sizeof(double *));
-    error(centroids == NULL);
-
     for( i=0;i<k;i++){
-        centroids[i] = calloc(d,sizeof(double));
-        error(centroids[i] == NULL);
         for( j=0;j<d;j++){
             centroids[i][j] = data_points[i][j];
         }
@@ -335,7 +293,6 @@ void write_to_output_file(){
 
 void free_2d_array(double **array, int rows) {
     int row;
-
     for ( row = 0; row < rows; row++){
         free(array[row]);
     }

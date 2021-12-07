@@ -72,7 +72,7 @@ def init_centroids(vectors_array, k):
     mu_array = [vectors_array[i] for i in range(k)]
     return mu_array
 
-def validate_input(condition):
+def validate(condition):
     if not condition:
         print('Invalid Input!')
         exit(1)
@@ -82,14 +82,14 @@ if __name__ == '__main__':
     try:
         args = sys.argv[1:]
 
-        validate_input(len(args) == 3 or len(args) == 4)
+        validate(len(args) == 3 or len(args) == 4)
 
-        validate_input(args[0].isdigit())
+        validate(args[0].isdigit())
         K = int(args[0])
-        validate_input(K > 0)
+        validate(K > 0)
 
         if len(args) == 4:
-            validate_input(args[1].isdigit())
+            validate(args[1].isdigit())
             max_iter = int(args[1])
         else:
             max_iter = 200

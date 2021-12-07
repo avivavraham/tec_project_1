@@ -11,7 +11,6 @@ int is_number(char s[]);
 int isdigit_help(char digit);
 void find_vectors_len(FILE *fp);
 void find_d_of_vector(FILE *fp);
-char* concat(const char *s1, const char *s2);
 void write_to_output_file();
 int find_closets_cluster(double *data_point);
 void algorithm();
@@ -58,11 +57,9 @@ int main(int argc, char **argv) {
 
 void init_data_frame(){
     FILE *ifp = NULL;
-    int i=0,j=0,r=0;
+    int i=0,j;
     char line[1024];
-    char *temp_vector= "";
-    char *temp_char_to_string;
-    double f_temp, **vectors;
+    double **vectors;
 
     ifp = fopen(input_file ,"r");
     error(ifp == NULL);
@@ -71,44 +68,30 @@ void init_data_frame(){
     find_d_of_vector(ifp);
 
     vectors = allocate_2d_array(num_rows,d);
-
     while(fgets(line, sizeof line, ifp) != NULL) {
-        while (line[r] != '\n'){
-            temp_char_to_string = calloc(2, sizeof(char));
-            if (line[r] != ','){
-                error(temp_char_to_string == NULL);
-                temp_char_to_string[0] = line[r];
-                temp_char_to_string[1] = '\0';
-                temp_vector = concat(temp_vector, temp_char_to_string);
-                free(temp_char_to_string);
-            } else{
-                f_temp = atof(temp_vector);
-                vectors[i][j] = f_temp;
-                j++;
-                temp_vector ="";
-            }
-            r++;
-        }
-        f_temp = atof(temp_vector);
-        vectors[i][j] = f_temp;
-        temp_vector ="";
-        r = 0;
-        i++;
-        j=0;
-    }
-    fclose(ifp);
+        line[strlen(line) - 1] = 0;
 
-    data_points = calloc(num_rows, sizeof(double *));
-    error(data_points == NULL);
-    for(i=0 ; i<num_rows ; i++ ){
-        data_points[i] = calloc(d, sizeof(double));
-        error(data_points[i] == NULL);
+        for (j = 0; j < d; j++) {
+            if (j == 0) {
+                vectors[i][j] = atof(strtok(line, ","));
+            } else {
+                vectors[i][j] = atof(strtok(NULL, ","));
+            }
+        }
+
+        i++;
     }
+
+    data_points = allocate_2d_array(num_rows,d);
+
     for(i=0 ; i<num_rows ; i++ ){
         for(j=0 ; j<d ; j++ ){
             data_points[i][j] = vectors[i][j];
         }
     }
+
+    fclose(ifp);
+
 }
 
 void error(int condition){
@@ -140,15 +123,6 @@ void find_d_of_vector(FILE *fp){
         }
     }
     fseek(fp,0,SEEK_SET);
-}
-
-char* concat(const char *s1, const char *s2)
-{
-    char *result = malloc(strlen(s1) + strlen(s2) + 1);
-    error(result == NULL);
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
 }
 
 int find_closets_cluster(double *data_point){

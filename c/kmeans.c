@@ -59,7 +59,8 @@ int main(int argc, char **argv) {
 void init_data_frame(){
     FILE *ifp = NULL;
     int i=0,j=0,r=0;
-    char line[1024];
+    char *line = calloc(1024,sizeof(char));
+    error(line == NULL);
     char *temp_vector= "";
     char *temp_char_to_string;
     double f_temp, **vectors;

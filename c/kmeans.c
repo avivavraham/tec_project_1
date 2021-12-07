@@ -248,7 +248,6 @@ void algorithm() {
 
 double **allocate_array_2d(int r, int c) {
     double **arr;
-    int i;
     arr = calloc(r, sizeof(double *));
     error_occured(arr == NULL);
     while (r--) {

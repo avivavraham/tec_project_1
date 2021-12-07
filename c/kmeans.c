@@ -60,10 +60,11 @@ void init_data_frame(){
     FILE *ifp = NULL;
     int i=0,j=0,r=0;
     char *line = calloc(1024,sizeof(char));
-    error(line == NULL);
     char *temp_vector;
     char *temp_char_to_string;
     double f_temp, **vectors;
+
+    error(line == NULL);
 
     ifp = fopen(input_file ,"r");
     error(ifp == NULL);
@@ -75,7 +76,7 @@ void init_data_frame(){
     temp_char_to_string = calloc(2, sizeof(char));
     error(temp_char_to_string == NULL);
 
-
+    temp_vector="";
     while(fgets(line, sizeof line, ifp) != NULL) {
         while (line[r] != '\n'){
             if (line[r] != ','){

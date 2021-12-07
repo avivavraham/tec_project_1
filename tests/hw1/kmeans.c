@@ -7,7 +7,7 @@
 
 void init_data_frame();
 
-void validate_input(int condition);
+void validate(int condition);
 
 int is_number(char s[]);
 
@@ -25,17 +25,17 @@ void algorithm();
 
 void init_centroids();
 
-void free_2d_array(double **array, int rows);
+void free_2d_array(double **arr, int r);
 
-void set_equal_2d_array(double **new, double **current, int rows, int columns);
+void set_equal_2d_array(double **new, double **current, int r, int c);
 
-void zero_2d_array(double **array, int rows, int columns);
+void zero_2d_array(double **arr, int r, int c);
 
 void calculate_new_centroids();
 
-double **allocate_2d_array(int rows, int columns);
+double **allocate_2d_array(int r, int c);
 
-double get_squared_distance(double *v1, double *v2);
+double get_squared_distance(double *a, double *b);
 
 void error(int condition);
 
@@ -47,28 +47,26 @@ char *input_file, *output_file;
 double **data_points, **centroids, **new_centroids, **clusters;
 
 int main(int argc, char **argv) {
-    validate_input(argc == 4 || argc == 5);
+    validate(argc == 4 || argc == 5);
 
-    validate_input(is_number(argv[1]));
+    validate(is_number(argv[1]));
 
 
-    validate_input(sscanf(argv[1], "%d", &k) != EOF);
-    validate_input(k > 1);
+    validate(sscanf(argv[1], "%d", &k) != EOF);
+    validate(k > 1);
 
     if (is_number(argv[2])) {
         sscanf(argv[2], "%d", &max_iter);
     } else {
-        validate_input(argc == 4);
+        validate(argc == 4);
         max_iter = 200;
     }
     input_file = argv[argc - 2];
     output_file = argv[argc - 1];
-    validate_input(!is_number(input_file));
-    validate_input(!is_number(output_file));
+    validate(!is_number(input_file));
+    validate(!is_number(output_file));
 
     init_data_frame();
-
-    validate_input(k<num_rows);
 
     algorithm();
     return 0;
@@ -139,7 +137,6 @@ int find_closets_cluster(double *data_point) {
     double *difference, *current_mu, sum, min_sum;
     int index = 0, i;
 
-
     difference = calloc(k, sizeof(int *));
     error(difference == NULL);
     for (i = 0; i < k; i++) {
@@ -186,13 +183,13 @@ void calculate_new_centroids() {
     }
 }
 
-double get_squared_distance(double *v1, double *v2) {
-    double dist = 0;
+double get_squared_distance(double *a, double *b) {
+    double distance = 0;
     int i;
-    for (i = 0; i < d; i++)
-        dist += pow(v1[i] - v2[i], 2);
-
-    return dist;
+    for (i = 0; i < d; i++) {
+        distance += pow(a[i] - b[i], 2);
+    }
+    return distance;
 }
 
 void algorithm() {
@@ -248,18 +245,18 @@ void algorithm() {
     free(num_elements_in_cluster);
 }
 
-double **allocate_2d_array(int rows, int columns) {
-    double **array;
+double **allocate_2d_array(int r, int c) {
+    double **arr;
     int i;
 
-    array = calloc(rows, sizeof(double *));
-    error(array == NULL);
+    arr = calloc(r, sizeof(double *));
+    error(arr == NULL);
 
-    for (i = 0; i < rows; i++) {
-        array[i] = calloc(columns, sizeof(double));
-        error(array[i] == NULL);
+    for (i = 0; i < r; i++) {
+        arr[i] = calloc(c, sizeof(double));
+        error(arr[i] == NULL);
     }
-    return array;
+    return arr;
 }
 
 void init_centroids() {
@@ -287,7 +284,7 @@ int isdigit_help(char digit) {
     return 1;
 }
 
-void validate_input(int condition) {
+void validate(int condition) {
     if (!condition) {
         printf("Invalid Input!\n");
         exit(1);
@@ -312,34 +309,30 @@ void write_to_output_file() {
     fclose(fptr);
 }
 
-void free_2d_array(double **array, int rows) {
-    int row;
-
-    for (row = 0; row < rows; row++) {
-        free(array[row]);
+void free_2d_array(double **arr, int r) {
+    int i;
+    for (i = 0; i < r; i++) {
+        free(arr[i]);
     }
-    free(array);
+    free(arr);
 }
 
-void set_equal_2d_array(double **new, double **current, int rows, int columns) {
+void set_equal_2d_array(double **new, double **current, int r, int c) {
     int i, j;
 
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < columns; j++) {
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < c; j++) {
             new[i][j] = current[i][j];
         }
     }
 }
 
-void zero_2d_array(double **array, int rows, int columns) {
+void zero_2d_array(double **arr, int r, int c) {
     int i, j;
 
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < columns; j++) {
-            array[i][j] = 0;
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < c; j++) {
+            arr[i][j] = 0;
         }
     }
 }
-
-
-

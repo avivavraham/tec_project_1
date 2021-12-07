@@ -67,29 +67,22 @@ void init_data_frame(){
     find_vectors_len(ifp);
     find_d_of_vector(ifp);
 
+    data_points = allocate_2d_array(num_rows,d);
+    error(data_points == NULL);
+
     vectors = allocate_2d_array(num_rows,d);
     while(fgets(line, sizeof line, ifp) != NULL) {
         line[strlen(line) - 1] = 0;
-
         for (j = 0; j < d; j++) {
             if (j == 0) {
-                vectors[i][j] = atof(strtok(line, ","));
+                data_points[i][j] = atof(strtok(line, ","));
             } else {
-                vectors[i][j] = atof(strtok(NULL, ","));
+                data_points[i][j] = atof(strtok(NULL, ","));
             }
         }
 
         i++;
     }
-
-    data_points = allocate_2d_array(num_rows,d);
-
-    for(i=0 ; i<num_rows ; i++ ){
-        for(j=0 ; j<d ; j++ ){
-            data_points[i][j] = vectors[i][j];
-        }
-    }
-
     fclose(ifp);
 
 }

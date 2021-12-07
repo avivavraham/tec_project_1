@@ -1,0 +1,3 @@
+/Users/I555060/University/software-project/tec_project_1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/I555060/University/software-project/tec_project_1/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/I555060/University/software-project/tec_project_1/cmake-build-debug/CMakeFiles/tec_project_1.dir

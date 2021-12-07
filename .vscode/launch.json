@@ -3,12 +3,12 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [
+    "configurations": [  
         {
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "enter program name, for example ${workspaceFolder}/a.out",
+            "program": "${workspaceFolder}/c/hw1",            
             "args": ["3","600","input_1.txt","output_1.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
@@ -22,7 +22,15 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["3","600","python/input_1.txt","python/output_1.txt"]
+            "args": ["7","600","python/input_2.txt","python/output_2.txt"]
+        },
+        {
+            "name": "Python: Current File test",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["7","software-project-tests/hw1/tests/input_11.txt","software-project-tests/hw1/output.txt"]
         }
     ]
 }

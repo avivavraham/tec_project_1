@@ -16,22 +16,21 @@ void write_to_output_file();
 int find_closets_cluster(double *data_point);
 void algorithm();
 void init_centroids();
-void init_clusters();
 void free_2d_array(double **array, int rows);
-void free_3d_array(double ***array,int a,int b);
 void set_equal_2d_array(double **new,double **current,int rows,int columns);
-void zero_3d_array(double ***array,int x,int y,int z);
 void zero_2d_array(double **array,int rows,int columns);
-void calculate_new_centroids(const int *num_elements_in_cluster);
+void calculate_new_centroids();
 double** allocate_2d_array(int rows,int columns);
 double get_squared_distance(double *v1, double *v2);
 void error(int condition);
+void set_clusters();
 
 int k, max_iter,num_rows,d=1;
+int *num_elements_in_cluster;
 char *input_file, *output_file;
-double **data_points,**centroids,**new_centroids,***clusters;
+double **data_points,**centroids,**new_centroids,**clusters;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
     validate_input(argc == 4 || argc == 5);
 
     validate_input(is_number(argv[1]));
@@ -48,6 +47,8 @@ int main(int argc, char *argv[]) {
     }
     input_file = argv[argc-2];
     output_file = argv[argc-1];
+    validate_input(!is_number(input_file));
+    validate_input(!is_number(output_file));
 
     init_data_frame();
 
@@ -73,12 +74,13 @@ void init_data_frame(){
 
     while(fgets(line, sizeof line, ifp) != NULL) {
         while (line[r] != '\n'){
+            temp_char_to_string = calloc(2, sizeof(char));
             if (line[r] != ','){
-                temp_char_to_string = malloc(2 * sizeof(char));
                 error(temp_char_to_string == NULL);
                 temp_char_to_string[0] = line[r];
                 temp_char_to_string[1] = '\0';
                 temp_vector = concat(temp_vector, temp_char_to_string);
+                free(temp_char_to_string);
             } else{
                 f_temp = atof(temp_vector);
                 vectors[i][j] = f_temp;
@@ -101,7 +103,6 @@ void init_data_frame(){
     for(i=0 ; i<num_rows ; i++ ){
         data_points[i] = calloc(d, sizeof(double));
         error(data_points[i] == NULL);
-
     }
     for(i=0 ; i<num_rows ; i++ ){
         for(j=0 ; j<d ; j++ ){
@@ -128,6 +129,7 @@ void find_vectors_len(FILE *fp){
 void find_d_of_vector(FILE *fp){
     char line[1024];
     int i=0;
+    fseek(fp,0,SEEK_SET);
     if (fgets(line, sizeof line, fp) != NULL) {
         line[i] = line[0];
         while (line[i] != '\n'){
@@ -168,13 +170,13 @@ int find_closets_cluster(double *data_point){
             index = i;
         }
     }
+    free(difference);
     return index;
 }
 
-void set_clusters(int *num_elements_in_cluster){
-    int index, elements_in_index,i,a;
-    double *x_i; 
-
+void set_clusters(){
+    int index,i,a;
+    double *x_i,*cluster; 
 
     for(i=0;i<k;i++){
         num_elements_in_cluster[i] = 0;
@@ -182,31 +184,23 @@ void set_clusters(int *num_elements_in_cluster){
     for (i=0;i<num_rows;i++){
         x_i = data_points[i];
         index = find_closets_cluster(x_i);
-        elements_in_index = num_elements_in_cluster[index];
+        cluster = clusters[index];
         for (a=0;a<d;a++){
-            clusters[index][elements_in_index][a] = x_i[a];
+            cluster[a] += x_i[a];
         }
         num_elements_in_cluster[index]++;
     }
 }
 
-void calculate_new_centroids(const int *num_elements_in_cluster){
-    double **cluster,*current_centroid,*data;
-    int len_cluster,i,j,m;
+void calculate_new_centroids(){
+    double *cluster;
+    int len_cluster,i,j;
 
-    for( i=0;i<k;i++){
+    for(i=0;i<k;i++){
         cluster = clusters[i];
         len_cluster = num_elements_in_cluster[i];
-        current_centroid = calloc(len_cluster,sizeof(double));
-        error(current_centroid == NULL);
-        for ( j=0;j<len_cluster;j++){
-            data = cluster[j];
-            for( m=0;m<d;m++){
-                current_centroid[m] += data[m];
-            }
-        }
-        for( j=0;j<d;j++){
-            new_centroids[i][j] = current_centroid[j] / len_cluster;
+        for(j=0;j<d;j++){
+            new_centroids[i][j] = cluster[j] / len_cluster;
         }
     }
 }
@@ -222,22 +216,22 @@ double get_squared_distance(double *v1, double *v2) {
 
 void algorithm(){
     double epsilon = 0.001;
-    int *num_elements_in_cluster,i;
+    int i;
     double *sum_diff_centroids;
     double diff,sq_diff,max;
+    num_elements_in_cluster = calloc(k, sizeof(int));
 
     init_centroids();
-    init_clusters();
+    clusters = allocate_2d_array(k,d);
     new_centroids = allocate_2d_array(k,d);
     while(max_iter > 0){
-        zero_3d_array(clusters,k,num_rows,d);
         zero_2d_array(new_centroids,k,d);
+        zero_2d_array(clusters,k,d);
 
-        num_elements_in_cluster = calloc(k, sizeof(int));
         error(num_elements_in_cluster == NULL);
 
-        set_clusters(num_elements_in_cluster);
-        calculate_new_centroids(num_elements_in_cluster);
+        set_clusters();
+        calculate_new_centroids();
 
         max_iter--;
         sum_diff_centroids = calloc(k,sizeof(double));
@@ -254,17 +248,18 @@ void algorithm(){
                 max = sum_diff_centroids[i];
             }
         }
+        set_equal_2d_array(centroids,new_centroids,k,d);
         if(max<=epsilon){
-            set_equal_2d_array(centroids,new_centroids,k,d);
             max_iter=0;
         }
-        set_equal_2d_array(centroids,new_centroids,k,d);
+        free(sum_diff_centroids);
     }
     write_to_output_file();
     free_2d_array(centroids,k);
     free_2d_array(new_centroids,k);
     free_2d_array(data_points,num_rows);
-    free_3d_array(clusters,k,num_rows);
+    free_2d_array(clusters,k);
+    free(num_elements_in_cluster);
 }
 
 double** allocate_2d_array(int rows,int columns){
@@ -295,21 +290,6 @@ void init_centroids(){
         }
     }
 
-}
-
-void init_clusters(){
-    int i,j;
-
-    clusters = calloc(k,sizeof(double **));
-    error(clusters == NULL);
-    for( i=0;i<k;i++){
-        clusters[i] = calloc(num_rows,sizeof(double *));
-        error(clusters[i] == NULL);
-        for( j=0;j<num_rows;j++){
-            clusters[i][j] = calloc(d,sizeof(double));
-            error(clusters[i][j] == NULL);
-        }
-    }
 }
 
 int is_number(char s[]){
@@ -362,18 +342,6 @@ void free_2d_array(double **array, int rows) {
     free(array);
 }
 
-void free_3d_array(double ***array, int a,int b) {
-    int row1,row2;
-
-    for ( row1 = 0; row1 < a; row1++){
-        for( row2 = 0;row2 < b; row2++){
-            free(array[row1][row2]);
-        }
-        free(array[row1]);
-    }
-    free(array);
-}
-
 void set_equal_2d_array(double **new,double **current,int rows,int columns){
     int i,j;
 
@@ -394,14 +362,5 @@ void zero_2d_array(double **array,int rows,int columns){
     }
 }
 
-void zero_3d_array(double ***array,int x,int y,int z){
-    int i,j,m;
 
-    for( i=0;i<x;i++){
-        for( j=0;j<y;j++){
-            for( m=0;m<z;m++){
-                array[i][j][m] = 0;
-            }
-        }
-    }
-}
+

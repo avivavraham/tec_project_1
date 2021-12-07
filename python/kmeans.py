@@ -5,6 +5,7 @@ def algorithm(k, input_file, output_file, max_iter=200):
     epsilon = 0.001
     data_points = reading_from_file(input_file)
     centroids = init_centroids(data_points, k)
+    d = len(data_points[0])
     N = len(data_points)
     while max_iter > 0:
         clusters = [[] for _ in range(k)]
@@ -12,28 +13,36 @@ def algorithm(k, input_file, output_file, max_iter=200):
             x_i = data_points[i]
             index = find_closest_cluster(x_i, centroids)
             clusters[index].append(x_i)
-        new_centroids = [[] for i in range(k)]
+        new_centroids = [[0] * d for _ in range(k)]
         for i in range(k):
             cluster = clusters[i]
             len_cluster = len(clusters[i])
-            current_centroid = [0 for _ in range(len(cluster[0]))]
+            current_centroid = [0 for _ in range(d)]
             for j in range(len_cluster):
                 data = cluster[j]
                 for m in range(len(data)):
                     current_centroid[m] += data[m]
             new_centroids[i] = [current_centroid[i] / len_cluster for i in range(len(current_centroid))]
-        max_iter -= 1
         diff_centroids = [[lst1[i] - lst2[i] for i in range(len(lst1))] for lst1, lst2 in zip(centroids, new_centroids)]
         diff_centroids = [sum([num**2 for num in diff_centroids[i]])**0.5 for i in range(len(diff_centroids))]
         if max(diff_centroids) < epsilon:
             break
         centroids = new_centroids
+        max_iter -= 1
     writing_to_output_file(output_file, new_centroids)
 
 
 def writing_to_output_file(output_file, centroids):
     f = open(output_file, "w")
-    f.writelines(','.join(f'{num:.4f}' for num in centroid) + '\n' for centroid in centroids)
+    for i in range(len(centroids)):
+        for j in range(len(centroids[i])):
+            num = centroids[i][j]
+            format_float = "%.4f" % float(num)
+            f.write(str(format_float))
+            if j == len(centroids[i]) - 1:
+                f.write("\n")
+            else:
+                f.write(",")
     f.close()
 
 def find_closest_cluster(data_point, mu_array):

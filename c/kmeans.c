@@ -80,13 +80,13 @@ void init_data_frame(){
                 temp_char_to_string[0] = line[r];
                 temp_char_to_string[1] = '\0';
                 temp_vector = concat(temp_vector, temp_char_to_string);
-                free(temp_char_to_string);
             } else{
                 f_temp = atof(temp_vector);
                 vectors[i][j] = f_temp;
                 j++;
                 temp_vector ="";
             }
+            free(temp_char_to_string);
             r++;
         }
         f_temp = atof(temp_vector);

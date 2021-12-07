@@ -70,7 +70,6 @@ void init_data_frame(){
     data_points = allocate_2d_array(num_rows,d);
     error(data_points == NULL);
 
-    vectors = allocate_2d_array(num_rows,d);
     while(fgets(line, sizeof line, ifp) != NULL) {
         line[strlen(line) - 1] = 0;
         for (j = 0; j < d; j++) {
@@ -143,17 +142,14 @@ int find_closets_cluster(double *data_point){
 
 void set_clusters(){
     int index,i,a;
-    double *x_i,*cluster;
 
     for(i=0;i<k;i++){
         num_elements_in_cluster[i] = 0;
     }
     for (i=0;i<num_rows;i++){
-        x_i = data_points[i];
-        index = find_closets_cluster(x_i);
-        cluster = clusters[index];
+        index = find_closets_cluster(data_points[i]);
         for (a=0;a<d;a++){
-            cluster[a] += x_i[a];
+            clusters[index][a] += data_points[i][a];
         }
         num_elements_in_cluster[index]++;
     }

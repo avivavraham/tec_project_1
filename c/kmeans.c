@@ -184,6 +184,7 @@ void algorithm(){
     double diff,sq_diff,max;
     num_elements_in_cluster = calloc(k, sizeof(int));
 
+    centroids = allocate_2d_array(k,d);
     init_centroids();
     clusters = allocate_2d_array(k,d);
     new_centroids = allocate_2d_array(k,d);
@@ -241,13 +242,7 @@ double** allocate_2d_array(int rows,int columns){
 
 void init_centroids(){
     int i,j;
-
-    centroids = calloc(k,sizeof(double *));
-    error(centroids == NULL);
-
     for( i=0;i<k;i++){
-        centroids[i] = calloc(d,sizeof(double));
-        error(centroids[i] == NULL);
         for( j=0;j<d;j++){
             centroids[i][j] = data_points[i][j];
         }

@@ -68,6 +68,8 @@ int main(int argc, char **argv) {
 
     init_data_frame();
 
+    validate_input(k<num_rows);
+
     algorithm();
     return 0;
 }

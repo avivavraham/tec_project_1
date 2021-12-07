@@ -71,12 +71,13 @@ void init_data_frame(){
     find_d_of_vector(ifp);
 
     vectors = allocate_2d_array(num_rows,d);
+    temp_char_to_string = calloc(2, sizeof(char));
+    error(temp_char_to_string == NULL);
+
 
     while(fgets(line, sizeof line, ifp) != NULL) {
         while (line[r] != '\n'){
-            temp_char_to_string = calloc(2, sizeof(char));
             if (line[r] != ','){
-                error(temp_char_to_string == NULL);
                 temp_char_to_string[0] = line[r];
                 temp_char_to_string[1] = '\0';
                 temp_vector = concat(temp_vector, temp_char_to_string);
@@ -86,16 +87,17 @@ void init_data_frame(){
                 j++;
                 temp_vector ="";
             }
-            free(temp_char_to_string);
             r++;
         }
         f_temp = atof(temp_vector);
         vectors[i][j] = f_temp;
-        temp_vector ="";
         r = 0;
         i++;
         j=0;
     }
+    free(line);
+    free(temp_char_to_string);
+    free(temp_vector);
     fclose(ifp);
 
     data_points = calloc(num_rows, sizeof(double *));
@@ -220,6 +222,9 @@ void algorithm(){
     double *sum_diff_centroids;
     double diff,sq_diff,max;
     num_elements_in_cluster = calloc(k, sizeof(int));
+    error((num_elements_in_cluster == NULL));
+    sum_diff_centroids = calloc(k,sizeof(double));
+    error((sum_diff_centroids == NULL));
 
     init_centroids();
     clusters = allocate_2d_array(k,d);
@@ -233,9 +238,11 @@ void algorithm(){
         set_clusters();
         calculate_new_centroids();
 
+        for(i=0;i<k;i++){
+            sum_diff_centroids[i]=0;
+        }
+
         max_iter--;
-        sum_diff_centroids = calloc(k,sizeof(double));
-        error(sum_diff_centroids == NULL);
 
         for( i=0;i<k;i++){
             diff = get_squared_distance(centroids[i],new_centroids[i]);
@@ -252,7 +259,6 @@ void algorithm(){
         if(max<=epsilon){
             max_iter=0;
         }
-        free(sum_diff_centroids);
     }
     write_to_output_file();
     free_2d_array(centroids,k);
@@ -260,6 +266,8 @@ void algorithm(){
     free_2d_array(data_points,num_rows);
     free_2d_array(clusters,k);
     free(num_elements_in_cluster);
+    free(sum_diff_centroids);
+
 }
 
 double** allocate_2d_array(int rows,int columns){
